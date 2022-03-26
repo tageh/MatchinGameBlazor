@@ -19,6 +19,10 @@
 </style>
 
 <div class="container">
+    <div>
+        <h1 class="text-center">@wlDisplay</h1>
+    </div>
+
     <div class="row">
         @for(var index = 0; index < shuffeldList.Count; index++)
         {
@@ -87,6 +91,8 @@
     Timer timer;
     int tenthsOfSecoundsElapsed = 0;
     string timeDisplay;
+    string wlDisplay;
+    bool canPlay = false;
 
     protected override void OnInitialized()
     {
@@ -102,6 +108,7 @@
         shuffeldList = chooseList().OrderBy(item => random.Next()).ToList();
         matchesFound = 0;
         tenthsOfSecoundsElapsed = 200;
+        canPlay = false;
     }
 
     string lastItemFound = string.Empty;
@@ -110,33 +117,39 @@
     private void StartGame()
     {
         timer.Start();
+        wlDisplay = "";
+        canPlay = true;
     }
-    
+
     private void ButtonClick(string listItem, string listDescription)
     {
-        if (lastItemFound == string.Empty)
+        if (canPlay)
         {
-            lastItemFound = listItem;
-            lastDescription = listDescription;
-
-            //timer.Start();
-        }else if((lastItemFound == listItem) && (listDescription != lastDescription))
-        {
-            lastItemFound = string.Empty;
-            shuffeldList = shuffeldList.Select(a => a.Replace(listItem, string.Empty)).ToList();
-
-            matchesFound++;
-            if(matchesFound == 8)
+            if (lastItemFound == string.Empty)
             {
-                timer.Stop();
-                timeDisplay += " - Play Again?";
-                
-                SetUpGame();
+                lastItemFound = listItem;
+                lastDescription = listDescription;
+
             }
-        }
-        else
-        {
-            lastItemFound = string.Empty;
+            else if ((lastItemFound == listItem) && (listDescription != lastDescription))
+            {
+                lastItemFound = string.Empty;
+                shuffeldList = shuffeldList.Select(a => a.Replace(listItem, string.Empty)).ToList();
+
+                matchesFound++;
+                if (matchesFound == 8)
+                {
+                    timer.Stop();
+                    timeDisplay += " - Play Again?";
+
+                    SetUpGame();
+                    wlDisplay = "Game Complete!";
+                }
+            }
+            else
+            {
+                lastItemFound = string.Empty;
+            }
         }
     }
 
@@ -152,8 +165,10 @@
             else
             {
                 timer.Stop();
-                timeDisplay = " - Play Again?";
+                timeDisplay = " 0.0s - Play Again?";
                 SetUpGame();
+                wlDisplay = "Game Over!";
+
             }
             StateHasChanged();
         });
