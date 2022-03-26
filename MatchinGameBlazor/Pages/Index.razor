@@ -1,9 +1,43 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<style>
+    .container{
+        width:400px;
+    }
 
-<h1>TSD2490 – Oblig1</h1>
+    button{
+        width:100px;
+        height:100px;
+        font-size:50px;
+    }
+</style>
 
-Welcome to your new app.
+<div class="container">
+    <div class="row">
+        @foreach(var animal in animalEmoji)
+        {
+            <div class="col-3">
+                <button type="button" class="btn btn-outline-dark">
+                    <h1>@animal</h1>
+                </button>
+            </div>
+        }
+    </div>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code{
+    List<string> animalEmoji = new List<string>()
+        {
+            "🐨","🐨",
+            "🐍","🐍",
+            "🦑","🦑",
+            "🦢","🦢",
+            "🦜","🦜",
+            "🐦","🐦",
+            "🐧","🐧",
+            "🐛","🐛"
+        };
+
+
+
+}
