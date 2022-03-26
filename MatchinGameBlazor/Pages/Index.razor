@@ -14,10 +14,12 @@
 
 <div class="container">
     <div class="row">
-        @foreach(var animal in shuffeldAnimals)
+        @for(var animalNumber = 0; animalNumber < shuffeldAnimals.Count; animalNumber++)
         {
+            var animal = shuffeldAnimals[animalNumber];
+            var uniqueDescription = $"Button #{animalNumber}";
             <div class="col-3">
-                <button type="button" class="btn btn-outline-dark">
+                <button @onclick="@(() => ButtonClick(animal, uniqueDescription))" type="button" class="btn btn-outline-dark">
                     <h1>@animal</h1>
                 </button>
             </div>
@@ -49,6 +51,26 @@
     {
         Random random = new Random();
         shuffeldAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+    }
+
+    string lastAnimalFound = string.Empty;
+    string lastDescription = string.Empty;
+
+    private void ButtonClick(string animal, string animalDescription)
+    {
+        if (lastAnimalFound == string.Empty)
+        {
+            lastAnimalFound = animal;
+            lastDescription = animalDescription;
+        }else if((lastAnimalFound == animal) && (animalDescription != lastDescription))
+        {
+            lastAnimalFound = string.Empty;
+            shuffeldAnimals = shuffeldAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
+        }
+        else
+        {
+            lastAnimalFound = string.Empty;
+        }
     }
 
 }
