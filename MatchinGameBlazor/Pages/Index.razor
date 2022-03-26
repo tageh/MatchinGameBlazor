@@ -15,13 +15,13 @@
 
 <div class="container">
     <div class="row">
-        @for(var animalNumber = 0; animalNumber < shuffeldAnimals.Count; animalNumber++)
+        @for(var index = 0; index < shuffeldList.Count; index++)
         {
-            var animal = shuffeldAnimals[animalNumber];
-            var uniqueDescription = $"Button #{animalNumber}";
+            var listItem = shuffeldList[index];
+            var uniqueDescription = $"Button #{index}";
             <div class="col-3">
-                <button @onclick="@(() => ButtonClick(animal, uniqueDescription))" type="button" class="btn btn-outline-dark">
-                    <h1>@animal</h1>
+                <button @onclick="@(() => ButtonClick(listItem, uniqueDescription))" type="button" class="btn btn-outline-dark">
+                    <h1>@listItem</h1>
                 </button>
             </div>
         }
@@ -49,7 +49,31 @@
             "🐛","🐛"
         };
 
-    List<string> shuffeldAnimals = new List<string>();
+    List<string> foodEmoji = new List<string>()
+        {
+            "🍕","🍕",
+            "🍔","🍔",
+            "🍟","🍟",
+            "🌭","🌭",
+            "🍿","🍿",
+            "🥓","🥓",
+            "🥩","🥩",
+            "🍖","🍖"
+        };
+
+    List<string> fruitEmoji = new List<string>()
+        {
+            "🥝","🥝",
+            "🍌","🍌",
+            "🍋","🍋",
+            "🍊","🍊",
+            "🍉","🍉",
+            "🍏","🍏",
+            "🍓","🍓",
+            "🍇","🍇"
+        };
+
+    List<string> shuffeldList = new List<string>();
     int matchesFound = 0;
     Timer timer;
     int tenthsOfSecoundsElapsed = 0;
@@ -66,26 +90,26 @@
     private void SetUpGame()
     {
         Random random = new Random();
-        shuffeldAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+        shuffeldList = chooseList().OrderBy(item => random.Next()).ToList();
         matchesFound = 0;
         tenthsOfSecoundsElapsed = 0;
     }
 
-    string lastAnimalFound = string.Empty;
+    string lastItemFound = string.Empty;
     string lastDescription = string.Empty;
 
-    private void ButtonClick(string animal, string animalDescription)
+    private void ButtonClick(string listItem, string listDescription)
     {
-        if (lastAnimalFound == string.Empty)
+        if (lastItemFound == string.Empty)
         {
-            lastAnimalFound = animal;
-            lastDescription = animalDescription;
+            lastItemFound = listItem;
+            lastDescription = listDescription;
 
             timer.Start();
-        }else if((lastAnimalFound == animal) && (animalDescription != lastDescription))
+        }else if((lastItemFound == listItem) && (listDescription != lastDescription))
         {
-            lastAnimalFound = string.Empty;
-            shuffeldAnimals = shuffeldAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
+            lastItemFound = string.Empty;
+            shuffeldList = shuffeldList.Select(a => a.Replace(listItem, string.Empty)).ToList();
 
             matchesFound++;
             if(matchesFound == 8)
@@ -98,7 +122,7 @@
         }
         else
         {
-            lastAnimalFound = string.Empty;
+            lastItemFound = string.Empty;
         }
     }
 
@@ -111,5 +135,25 @@
             StateHasChanged();
         });
     } 
+
+    private List<string> chooseList()
+    {
+        Random random = new Random();
+        var list = new List<string>();
+
+        switch (random.Next(3))
+        {
+            case 0:
+                list = animalEmoji;
+                break;
+            case 1:
+                list = foodEmoji;
+                break;
+            case 2:
+                list = fruitEmoji;
+                break;
+        }
+        return list;
+    }
 
 }
