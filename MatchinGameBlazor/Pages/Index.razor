@@ -11,6 +11,11 @@
         height:100px;
         font-size:50px;
     }
+
+    #sbutton{
+        width:400px;
+        height:50px;
+    }
 </style>
 
 <div class="container">
@@ -27,12 +32,16 @@
         }
     </div>
 
+    <div class="col-3">
+        <button class="btn btn-outline-dark" id="sbutton" type="button" @onclick="@(() => StartGame())"><h3>Start</h3></button>
+    </div>
+
     <div class="row">
         <h2>Matches found: @matchesFound</h2>
     </div>
 
     <div class="row">
-        <h2>Time: @timeDisplay</h2>
+        <h2>Time left: @timeDisplay</h2>
     </div>
 </div>
 
@@ -92,12 +101,17 @@
         Random random = new Random();
         shuffeldList = chooseList().OrderBy(item => random.Next()).ToList();
         matchesFound = 0;
-        tenthsOfSecoundsElapsed = 0;
+        tenthsOfSecoundsElapsed = 200;
     }
 
     string lastItemFound = string.Empty;
     string lastDescription = string.Empty;
 
+    private void StartGame()
+    {
+        timer.Start();
+    }
+    
     private void ButtonClick(string listItem, string listDescription)
     {
         if (lastItemFound == string.Empty)
@@ -105,7 +119,7 @@
             lastItemFound = listItem;
             lastDescription = listDescription;
 
-            timer.Start();
+            //timer.Start();
         }else if((lastItemFound == listItem) && (listDescription != lastDescription))
         {
             lastItemFound = string.Empty;
@@ -116,7 +130,7 @@
             {
                 timer.Stop();
                 timeDisplay += " - Play Again?";
-
+                
                 SetUpGame();
             }
         }
@@ -130,8 +144,17 @@
     {
         InvokeAsync(() =>
         {
-            tenthsOfSecoundsElapsed++;
-            timeDisplay = (tenthsOfSecoundsElapsed / 10f).ToString("0.0s");
+            if (tenthsOfSecoundsElapsed > 0)
+            {
+                tenthsOfSecoundsElapsed--;
+                timeDisplay = (tenthsOfSecoundsElapsed / 10f).ToString("0.0s");
+            }
+            else
+            {
+                timer.Stop();
+                timeDisplay = " - Play Again?";
+                SetUpGame();
+            }
             StateHasChanged();
         });
     } 
@@ -155,5 +178,4 @@
         }
         return list;
     }
-
 }
