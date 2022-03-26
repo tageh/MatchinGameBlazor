@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Timers
 
 <style>
     .container{
@@ -25,6 +26,14 @@
             </div>
         }
     </div>
+
+    <div class="row">
+        <h2>Matches found: @matchesFound</h2>
+    </div>
+
+    <div class="row">
+        <h2>Time: @timeDisplay</h2>
+    </div>
 </div>
 
 @code{
@@ -41,9 +50,16 @@
         };
 
     List<string> shuffeldAnimals = new List<string>();
+    int matchesFound = 0;
+    Timer timer;
+    int tenthsOfSecoundsElapsed = 0;
+    string timeDisplay;
 
     protected override void OnInitialized()
     {
+        timer = new Timer(100);
+        timer.Elapsed += Timer_Tick;
+
         SetUpGame();
     }
 
@@ -51,6 +67,8 @@
     {
         Random random = new Random();
         shuffeldAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+        matchesFound = 0;
+        tenthsOfSecoundsElapsed = 0;
     }
 
     string lastAnimalFound = string.Empty;
@@ -62,15 +80,36 @@
         {
             lastAnimalFound = animal;
             lastDescription = animalDescription;
+
+            timer.Start();
         }else if((lastAnimalFound == animal) && (animalDescription != lastDescription))
         {
             lastAnimalFound = string.Empty;
             shuffeldAnimals = shuffeldAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
+
+            matchesFound++;
+            if(matchesFound == 8)
+            {
+                timer.Stop();
+                timeDisplay += " - Play Again?";
+
+                SetUpGame();
+            }
         }
         else
         {
             lastAnimalFound = string.Empty;
         }
     }
+
+    private void Timer_Tick(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            tenthsOfSecoundsElapsed++;
+            timeDisplay = (tenthsOfSecoundsElapsed / 10f).ToString("0.0s");
+            StateHasChanged();
+        });
+    } 
 
 }
