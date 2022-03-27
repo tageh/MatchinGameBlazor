@@ -1,5 +1,9 @@
 ﻿@page "/"
+@using System
 @using System.Timers
+@using System.Collections
+@using System.Collections.Specialized
+@using System.Diagnostics
 
 <style>
     .container{
@@ -11,20 +15,34 @@
         height:100px;
         font-size:50px;
     }
+
+    #sbutton{
+        width:400px;
+        height:50px;
+    }
 </style>
 
 <div class="container">
+    <div>
+        <h1 class="text-center">@wlDisplay</h1>
+    </div>
+
     <div class="row">
-        @for(var animalNumber = 0; animalNumber < shuffeldAnimals.Count; animalNumber++)
+        @for(var index = 0; index < shuffeldList.Count; index++)
         {
-            var animal = shuffeldAnimals[animalNumber];
-            var uniqueDescription = $"Button #{animalNumber}";
+            var listItem = shuffeldList[index];
+            var uniqueDescription = $"Button #{index}";
             <div class="col-3">
-                <button @onclick="@(() => ButtonClick(animal, uniqueDescription))" type="button" class="btn btn-outline-dark">
-                    <h1>@animal</h1>
+                <button @onclick="@(() => ButtonClick(listItem, uniqueDescription))" type="button" class="btn btn-outline-dark">
+                    <h1>@listItem</h1>
                 </button>
             </div>
         }
+    </div>
+
+    <div class="col-3">
+        <button class="btn btn-outline-dark" id="sbutton" type="button" @onclick="@(() => StartGame())"><h3>Start</h3></button>
+        <input type="text" @bind-value="Name" placeholder="Enter your name" style="width:400px;"/>
     </div>
 
     <div class="row">
@@ -32,7 +50,16 @@
     </div>
 
     <div class="row">
-        <h2>Time: @timeDisplay</h2>
+        <h2>Time left: @timeDisplay</h2>
+    </div>
+
+    <br />
+    <div class="row">
+        <h4>Scoreboard:</h4>
+        @foreach(DictionaryEntry player in players)
+        {
+            <p>@player.Value: @player.Key s</p> //ol did not work for me, so ended up going for p tag
+        }
     </div>
 </div>
 
@@ -49,11 +76,42 @@
             "🐛","🐛"
         };
 
-    List<string> shuffeldAnimals = new List<string>();
-    int matchesFound = 0;
+    List<string> foodEmoji = new List<string>()
+        {
+            "🍕","🍕",
+            "🍔","🍔",
+            "🍟","🍟",
+            "🌭","🌭",
+            "🍿","🍿",
+            "🥓","🥓",
+            "🥩","🥩",
+            "🍖","🍖"
+        };
+
+    List<string> fruitEmoji = new List<string>()
+        {
+            "🥝","🥝",
+            "🍌","🍌",
+            "🍋","🍋",
+            "🍊","🍊",
+            "🍉","🍉",
+            "🍏","🍏",
+            "🍓","🍓",
+            "🍇","🍇"
+        };
+
+    Stopwatch stopwatch = new Stopwatch(); //Used for saving the elapsed time
+    SortedList players = new SortedList(); //SortedList for sorting the list easily
+    List<string> shuffeldList = new List<string>();
+
     Timer timer;
+    int matchesFound = 0;
     int tenthsOfSecoundsElapsed = 0;
     string timeDisplay;
+    string wlDisplay;
+    bool canPlay = false;
+
+    private string Name{ get; set; }
 
     protected override void OnInitialized()
     {
@@ -66,39 +124,57 @@
     private void SetUpGame()
     {
         Random random = new Random();
-        shuffeldAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+        shuffeldList = chooseList().OrderBy(item => random.Next()).ToList();
         matchesFound = 0;
-        tenthsOfSecoundsElapsed = 0;
+        tenthsOfSecoundsElapsed = 200; //Equivalent to 20 secounds
+        canPlay = false; //Disables the ability to click on the grid
     }
 
-    string lastAnimalFound = string.Empty;
+    string lastItemFound = string.Empty;
     string lastDescription = string.Empty;
 
-    private void ButtonClick(string animal, string animalDescription)
+    private void StartGame()
     {
-        if (lastAnimalFound == string.Empty)
-        {
-            lastAnimalFound = animal;
-            lastDescription = animalDescription;
+        timer.Start();
+        stopwatch.Start(); 
+        wlDisplay = "";
+        canPlay = true; //Allows the use for ButtonClick method
+    }
 
-            timer.Start();
-        }else if((lastAnimalFound == animal) && (animalDescription != lastDescription))
+    private void ButtonClick(string listItem, string listDescription)
+    {
+        if (canPlay)
         {
-            lastAnimalFound = string.Empty;
-            shuffeldAnimals = shuffeldAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
-
-            matchesFound++;
-            if(matchesFound == 8)
+            if (lastItemFound == string.Empty)
             {
-                timer.Stop();
-                timeDisplay += " - Play Again?";
+                lastItemFound = listItem;
+                lastDescription = listDescription;
 
-                SetUpGame();
             }
-        }
-        else
-        {
-            lastAnimalFound = string.Empty;
+            else if ((lastItemFound == listItem) && (listDescription != lastDescription))
+            {
+                lastItemFound = string.Empty;
+                shuffeldList = shuffeldList.Select(a => a.Replace(listItem, string.Empty)).ToList();
+
+                matchesFound++;
+                if (matchesFound == 8)
+                {
+                    timer.Stop();
+                    stopwatch.Stop();
+                    timeDisplay += " - Play Again?";
+
+                    string elapsedTime = $"{stopwatch.Elapsed.Seconds}:{stopwatch.Elapsed.Milliseconds / 100}"; //Saves the elapsed time in vaiable
+
+                    SetUpGame();
+                    wlDisplay = "Game Complete!";
+                    players.Add(elapsedTime, Name); //Adds name and elapsed time in SortedList
+                    stopwatch.Reset(); //Resets the stopwatch
+                }
+            }
+            else
+            {
+                lastItemFound = string.Empty;
+            }
         }
     }
 
@@ -106,10 +182,41 @@
     {
         InvokeAsync(() =>
         {
-            tenthsOfSecoundsElapsed++;
-            timeDisplay = (tenthsOfSecoundsElapsed / 10f).ToString("0.0s");
+            if (tenthsOfSecoundsElapsed > 0)
+            {
+                tenthsOfSecoundsElapsed--;
+                timeDisplay = (tenthsOfSecoundsElapsed / 10f).ToString("0.0s");
+            }
+            else
+            {
+                timer.Stop();
+                stopwatch.Stop();
+                timeDisplay = " 0.0s - Play Again?";
+                SetUpGame();
+                wlDisplay = "Game Over!";
+                //Player is not added to list if it's game over
+            }
             StateHasChanged();
         });
     } 
 
-}
+    private List<string> chooseList()
+    {
+        Random random = new Random();
+        var list = new List<string>();
+
+        switch (random.Next(3))
+        {
+            case 0:
+                list = animalEmoji;
+                break;
+            case 1:
+                list = foodEmoji;
+                break;
+            case 2:
+                list = fruitEmoji;
+                break;
+        }
+        return list;
+    }
+} 
