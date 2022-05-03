@@ -6,7 +6,3 @@ New functionality include
 * Countdown from 20
 * A indication of "Game Over" or "Game Complete"
 * Basic user registration with scoreboard
-
-Try the website out for your self!
-
-https://matching-game.azurewebsites.net/
